@@ -37,3 +37,13 @@ some codes as follows:
 #print (corr['SalePrice'].sort_values(ascending=False)[-5:])
 
 Got score 0.16408 (Top62%)
+
+2018.4.15
+
+(1) Preprocess most 15 relevant attributes sequentially.
+
+(2) For numerical attributes, if not empty, add as predictors. Otherwise, fill up median, and then add as predictors.
+However, for non-numerical attributes, if not empty, one-hot(2 attributes) or get dummy (multiple attributes). Otherwise, fill up at the most value,
+and then one-hot as predictors.
+
+Got score 0.15396 (Top55%)
