@@ -47,3 +47,11 @@ However, for non-numerical attributes, if not empty, one-hot(2 attributes) or ge
 and then one-hot as predictors.
 
 Got score 0.15396 (Top55%)
+
+2018.4.16
+
+(1) Preprocess all relevant attributes of numerical sequentially. (total 38 attributes)
+
+(2) Try to use combined model, now have tried LinearRegression() and RidgeCV(). However, do not get better results significantly.
+
+Got score 0.13223 (Top34%)

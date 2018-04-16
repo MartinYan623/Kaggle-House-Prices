@@ -9,6 +9,8 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
+from sklearn.ensemble import RandomForestClassifier,GradientBoostingRegressor,AdaBoostClassifier
+
 hp_train = pd.read_csv('data/train.csv')
 hp_test = pd.read_csv("data/test.csv")
 
@@ -40,12 +42,35 @@ plt.show(data.plot.scatter(x=var, y='SalePrice', ylim=(0,800000)))
 combined['GrLivArea'] = np.log(combined['GrLivArea'])
 
 
-print ("Unique values are:", combined.BsmtFinSF1.unique())
-print (train.BsmtFinSF1.value_counts(), "\n")
+print ("Unique values are:", combined.BsmtHalfBath.unique())
+print (train.BsmtHalfBath.value_counts(), "\n")
 
 # 将是否有basement 分为两类
 def encode(x): return 0 if x == 0 else 1
 combined['enc_TotalBsmtSF'] = combined.TotalBsmtSF.apply(encode)
+def encode(x): return 0 if x == 0 else 1
+combined['enc_OpenPorchSF'] = combined.OpenPorchSF.apply(encode)
+
+month_mapping = {
+    1:'one',
+    2:'one',
+    3:'one',
+    4:'two',
+    5:'two',
+    6: 'two',
+    7: 'three',
+    8: 'three',
+    9:'three',
+    10:'four',
+    11:'four',
+    12:'four',
+}
+combined['MoSold'] = combined.MoSold.map(month_mapping)
+
+MoSold_dummies = pd.get_dummies(combined['MoSold'], prefix='MoSold')
+combined = pd.concat([combined,MoSold_dummies], axis=1)
+combined.drop('MoSold', axis=1, inplace=True)
+
 
 # 将enc_condition减少为二值属性
 def encode(x): return 1 if x == 'Partial' else 0
@@ -88,8 +113,12 @@ BsmtCond_dummies = pd.get_dummies(combined['BsmtCond'], prefix='BsmtCond')
 combined = pd.concat([combined,BsmtCond_dummies], axis=1)
 combined.drop('BsmtCond', axis=1, inplace=True)
 
+combined['BsmtFullBath'].fillna(combined.iloc[:1458].BsmtFullBath.median(),inplace=True)
 
+combined['BsmtUnfSF'].fillna(combined.iloc[:1458].BsmtUnfSF.median(),inplace=True)
+combined['BsmtFinSF2'].fillna(combined.iloc[:1458].BsmtFinSF2.median(),inplace=True)
 
+combined['BsmtHalfBath'].fillna(combined.iloc[:1458].BsmtHalfBath.median(),inplace=True)
 
 #nulls = pd.DataFrame(combined.isnull().sum().sort_values(ascending=False)[:25])
 #nulls.columns = ['Null Count']
@@ -111,25 +140,65 @@ test = combined.iloc[1458:]
 predictors=['OverallQual','GrLivArea','TotRmsAbvGrd','enc_TotalBsmtSF','GarageCars','1stFlrSF','GarageArea','FullBath',
             'YearBuilt','LotFrontage','GarageCond_Ex','GarageCond_Fa','GarageCond_Gd','GarageCond_Po','GarageCond_TA',
             'GarageYrBlt','GarageQual_Ex','GarageQual_Fa','GarageQual_Gd','GarageQual_Po','GarageQual_TA','GarageFinish_Fin',
-            'GarageFinish_RFn','GarageFinish_Unf','YearRemodAdd','MasVnrArea','Fireplaces','TotalBsmtSF']
+            'GarageFinish_RFn','GarageFinish_Unf','YearRemodAdd','MasVnrArea','Fireplaces','TotalBsmtSF','WoodDeckSF','enc_OpenPorchSF',
+            '2ndFlrSF','HalfBath','LotArea','BsmtFullBath','BsmtUnfSF','BedroomAbvGr','ScreenPorch','PoolArea','MoSold_four','MoSold_one',
+            'MoSold_three', 'MoSold_two','3SsnPorch','BsmtFinSF2','BsmtHalfBath','MiscVal','LowQualFinSF','YrSold','OverallCond','MSSubClass',
+            'EnclosedPorch','KitchenAbvGr']
 """
 ,'GarageType_2Types','GarageType_Attchd','GarageType_Basment','GarageType_BuiltIn',
             'GarageType_CarPort','GarageType_Detchd','BsmtCond_Fa','BsmtCond_Gd','BsmtCond_Po','BsmtCond_TA'
 """
 numeric_features = hp_train.select_dtypes(include=[np.number])
 corr = numeric_features.corr()
-print (corr['SalePrice'].sort_values(ascending=False)[:15], '\n')
+print (corr['SalePrice'].sort_values(ascending=False)[:38], '\n')
 print (corr['SalePrice'].sort_values(ascending=False)[-5:])
 
 x_train, x_test, y_train, y_test = train_test_split(train[predictors], target, random_state=42, test_size=.2)
 
-lr = linear_model.LinearRegression()
-model = lr.fit(x_train, y_train)
-predictions = model.predict(x_test)
-print ('RMSE is: \n', mean_squared_error(y_test, predictions))
-model = lr.fit(train[predictors], target)
-predictions=model.predict(test[predictors])
 
+
+"""
+for i in range (-2, 3):
+    alpha = 10**i
+    rm = linear_model.Ridge(alpha=alpha)
+    ridge_model = rm.fit(x_train, y_train)
+    preds_ridge = ridge_model.predict(x_test)
+
+    plt.scatter(preds_ridge, y_test, alpha=.75, color='b')
+    plt.xlabel('Predicted Price')
+    plt.ylabel('Actual Price')
+    plt.title('Ridge Regularization with alpha = {}'.format(alpha))
+    overlay = 'R^2 is: {}\nRMSE is: {}'.format(
+                    ridge_model.score(x_test, y_test),
+                    mean_squared_error(y_test, preds_ridge))
+    plt.annotate(s=overlay,xy=(12.1,10.6),size='x-large')
+    plt.show()
+"""
+
+
+#lr = linear_model.LinearRegression()
+#lr=GradientBoostingRegressor()
+lr=linear_model.RidgeCV()
+algorithms=[
+linear_model.LinearRegression(),
+linear_model.RidgeCV(alphas=np.logspace(-3, 2, 100)),
+]
+
+
+full_predictions = []
+for lr in algorithms:
+    model = lr.fit(x_train, y_train)
+    predictions=model.predict(x_test)
+    full_predictions.append(predictions)
+predictions = (full_predictions[0]*0.8 + full_predictions[1]*0.2)
+print ('RMSE is: \n', mean_squared_error(y_test, predictions))
+"""
+full_predictions = []
+for lr in algorithms:
+    model = lr.fit(train[predictors], target)
+    predictions=model.predict(test[predictors])
+    full_predictions.append(predictions)
+predictions = (full_predictions[0]*0.5 + full_predictions[1]*0.5)
 predictions = np.exp(predictions)
 submission = pd.DataFrame({
         "Id": hp_test["Id"],
@@ -137,3 +206,4 @@ submission = pd.DataFrame({
     })
 print(submission)
 submission.to_csv('/Users/martin_yan/Desktop/submission4.csv', index=False)
+"""
