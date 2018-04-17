@@ -55,3 +55,15 @@ Got score 0.15396 (Top55%)
 (2) Try to use combined model, now have tried LinearRegression() and RidgeCV(). However, do not get better results significantly.
 
 Got score 0.13223 (Top34%)
+
+2018.4.17
+
+(1) because there are a large number of codes, divide the preprocessing into a new .py file called preprocessdata.
+
+#import sys
+#sys.path.append("preprocessdata")
+#import preprocessdata as pre
+
+(2) begin to use non-numerical attributes. however, feel a little dizzy about handling too many non-numerical attributes. the grade improves a little
+
+Got score 0.13133 (Top32%)
