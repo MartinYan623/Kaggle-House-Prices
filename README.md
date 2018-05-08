@@ -67,3 +67,9 @@ Got score 0.13223 (Top34%)
 (2) begin to use non-numerical attributes. however, feel a little dizzy about handling too many non-numerical attributes. the grade improves a little
 
 Got score 0.13133 (Top32%)
+
+2018.5.8
+
+(1) Review the preprocessing I have done before and go on doing data preprocessing.
+
+Got score 0.13028 (Top30%)

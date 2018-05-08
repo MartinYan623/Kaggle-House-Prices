@@ -28,8 +28,10 @@ predictors=['OverallQual','GrLivArea','TotRmsAbvGrd','enc_TotalBsmtSF','GarageCa
             '2ndFlrSF','HalfBath','LotArea','BsmtFullBath','BsmtUnfSF','BedroomAbvGr','ScreenPorch','PoolArea','MoSold_four','MoSold_one',
             'MoSold_three', 'MoSold_two','3SsnPorch','BsmtFinSF2','BsmtHalfBath','MiscVal','LowQualFinSF','YrSold','OverallCond','MSSubClass',
             'EnclosedPorch','KitchenAbvGr','MSZoning_C (all)','MSZoning_FV','MSZoning_RH','MSZoning_RL','MSZoning_RM','enc_Street',
-            'LotShape_IR1','LotShape_IR2','LotShape_IR3','LotShape_Reg','LandContour_Bnk','LandContour_HLS','LandContour_Low','LandContour_Lvl',
-            'enc_Utilities','LotConfig_Corner','LotConfig_CulDSac','LotConfig_FR2','LotConfig_FR3','LotConfig_Inside','LandSlope_Gtl','LandSlope_Mod','LandSlope_Sev']
+            'enc_LotShape','LandContour_Bnk','LandContour_HLS','LandContour_Low','LandContour_Lvl',
+            'enc_Utilities','LotConfig_Corner','LotConfig_CulDSac','LotConfig_FR2','LotConfig_FR3','LotConfig_Inside','LandSlope_Gtl','LandSlope_Mod',
+            'LandSlope_Sev','BldgType_1Fam','BldgType_2fmCon','BldgType_Duplex','BldgType_Twnhs','BldgType_TwnhsE','HouseStyle_1','HouseStyle_2',
+            'HouseStyle_3','HouseStyle_4','SaleType_COD','SaleType_Con','SaleType_New','SaleType_Oth','SaleType_Warranty']
 
 #numeric_features = hp_train.select_dtypes(include=[np.number])
 #corr = numeric_features.corr()
@@ -84,5 +86,5 @@ submission = pd.DataFrame({
         "Id": pre.hp_test["Id"],
         "SalePrice": predictions
     })
-#print(submission)
-#submission.to_csv('/Users/martin_yan/Desktop/submission5.csv', index=False)
+print(submission)
+submission.to_csv('/Users/martin_yan/Desktop/submission5.csv', index=False)

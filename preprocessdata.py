@@ -3,7 +3,7 @@ import numpy as np
 
 hp_train = pd.read_csv('data/train.csv')
 hp_test = pd.read_csv("data/test.csv")
-
+#去掉异常点
 hp_train.sort_values(by = 'GrLivArea', ascending = False)[:2]
 hp_train = hp_train.drop(hp_train[hp_train['Id'] == 1299].index)
 hp_train = hp_train.drop(hp_train[hp_train['Id'] == 524].index)
@@ -29,22 +29,24 @@ plt.show(data.plot.scatter(x=var, y='SalePrice', ylim=(0,800000)))
 
 # 正态化GrLivArea
 #transformed histogram and normal probability plot
-#combined['GrLivArea'] = np.log(combined['GrLivArea'])
+combined['GrLivArea'] = np.log(combined['GrLivArea'])
 
 
-print ("Unique values are:", combined.Neighborhood.unique())
-print (train.Neighborhood.value_counts(), "\n")
+#print ("Unique values are:", combined.Neighborhood.unique())
+#print (train.Neighborhood.value_counts(), "\n")
 
 
-categoricals = train.select_dtypes(exclude=[np.number])
-print(categoricals.describe())
+#categoricals = train.select_dtypes(exclude=[np.number])
+#print(categoricals.describe())
 
 # 将是否有basement 分为两类
 def encode(x): return 0 if x == 0 else 1
 combined['enc_TotalBsmtSF'] = combined.TotalBsmtSF.apply(encode)
+# 将是否有porch 分为两类
 def encode(x): return 0 if x == 0 else 1
 combined['enc_OpenPorchSF'] = combined.OpenPorchSF.apply(encode)
 
+#将月份映射为季度
 month_mapping = {
     1:'one',
     2:'one',
@@ -60,36 +62,39 @@ month_mapping = {
     12:'four',
 }
 combined['MoSold'] = combined.MoSold.map(month_mapping)
-
 MoSold_dummies = pd.get_dummies(combined['MoSold'], prefix='MoSold')
 combined = pd.concat([combined,MoSold_dummies], axis=1)
 combined.drop('MoSold', axis=1, inplace=True)
 
-
-# 将enc_condition减少为二值属性
+# 将enc_condition减少为二值属性，partial 作为特别属性
 def encode(x): return 1 if x == 'Partial' else 0
 combined['enc_condition'] = combined.SaleCondition.apply(encode)
 
+#用train data的中位数来填补缺失信息
 combined['GarageCars'].fillna(combined.iloc[:1458].GarageCars.median(),inplace=True)
 combined['GarageArea'].fillna(combined.iloc[:1458].GarageArea.median(),inplace=True)
 combined['LotFrontage'].fillna(combined.iloc[:1458].LotFrontage.median(),inplace=True)
 combined['MasVnrArea'].fillna(combined.iloc[:1458].MasVnrArea.median(),inplace=True)
 combined['TotalBsmtSF'].fillna(combined.iloc[:1458].TotalBsmtSF.median(),inplace=True)
+combined['GarageYrBlt'].fillna(combined.iloc[:1458].GarageYrBlt.median(),inplace=True)
+combined['BsmtFullBath'].fillna(combined.iloc[:1458].BsmtFullBath.median(),inplace=True)
+combined['BsmtUnfSF'].fillna(combined.iloc[:1458].BsmtUnfSF.median(),inplace=True)
+combined['BsmtFinSF2'].fillna(combined.iloc[:1458].BsmtFinSF2.median(),inplace=True)
+combined['BsmtHalfBath'].fillna(combined.iloc[:1458].BsmtHalfBath.median(),inplace=True)
+
 # one-hot encoding
 combined['enc_Street'] = pd.get_dummies(combined.Street, drop_first=True)
 
+#先用最多的属性来填补，再one-hot编码
 combined['GarageCond'].fillna('TA',inplace=True)
 GarageCond_dummies = pd.get_dummies(combined['GarageCond'], prefix='GarageCond')
 combined = pd.concat([combined,GarageCond_dummies], axis=1)
 combined.drop('GarageCond', axis=1, inplace=True)
 
 combined['GarageQual'].fillna('TA',inplace=True)
-# one-hot 多值编码
 GarageQual_dummies = pd.get_dummies(combined['GarageQual'], prefix='GarageQual')
 combined = pd.concat([combined,GarageQual_dummies], axis=1)
 combined.drop('GarageQual', axis=1, inplace=True)
-
-combined['GarageYrBlt'].fillna(combined.iloc[:1458].GarageYrBlt.median(),inplace=True)
 
 combined['GarageFinish'].fillna('Unf',inplace=True)
 GarageFinish_dummies = pd.get_dummies(combined['GarageFinish'], prefix='GarageFinish')
@@ -101,35 +106,26 @@ GarageType_dummies = pd.get_dummies(combined['GarageType'], prefix='GarageType')
 combined = pd.concat([combined,GarageType_dummies], axis=1)
 combined.drop('GarageType', axis=1, inplace=True)
 
-
 combined['BsmtCond'].fillna('TA',inplace=True)
 BsmtCond_dummies = pd.get_dummies(combined['BsmtCond'], prefix='BsmtCond')
 combined = pd.concat([combined,BsmtCond_dummies], axis=1)
 combined.drop('BsmtCond', axis=1, inplace=True)
-
-combined['BsmtFullBath'].fillna(combined.iloc[:1458].BsmtFullBath.median(),inplace=True)
-
-combined['BsmtUnfSF'].fillna(combined.iloc[:1458].BsmtUnfSF.median(),inplace=True)
-combined['BsmtFinSF2'].fillna(combined.iloc[:1458].BsmtFinSF2.median(),inplace=True)
-
-combined['BsmtHalfBath'].fillna(combined.iloc[:1458].BsmtHalfBath.median(),inplace=True)
 
 combined['MSZoning'].fillna('RL',inplace=True)
 MSZoning_dummies = pd.get_dummies(combined['MSZoning'], prefix='MSZoning')
 combined = pd.concat([combined,MSZoning_dummies], axis=1)
 combined.drop('MSZoning', axis=1, inplace=True)
 
-LotShape_dummies = pd.get_dummies(combined['LotShape'], prefix='LotShape')
-combined = pd.concat([combined,LotShape_dummies], axis=1)
-combined.drop('LotShape', axis=1, inplace=True)
+def encode(x): return 1 if x == 'Regular' else 0
+combined['enc_LotShape'] = combined.LotShape.apply(encode)
 
+#无需填补，直接ont-hot
 LandContour_dummies = pd.get_dummies(combined['LandContour'], prefix='LandContour')
 combined = pd.concat([combined,LandContour_dummies], axis=1)
 combined.drop('LandContour', axis=1, inplace=True)
 
 combined['Utilities'].fillna('AllPub',inplace=True)
 combined['enc_Utilities'] = pd.get_dummies(combined.Utilities, drop_first=True)
-
 
 LotConfig_dummies = pd.get_dummies(combined['LotConfig'], prefix='LotConfig')
 combined = pd.concat([combined,LotConfig_dummies], axis=1)
@@ -138,7 +134,46 @@ combined.drop('LotConfig', axis=1, inplace=True)
 LandSlope_dummies = pd.get_dummies(combined['LandSlope'], prefix='LandSlope')
 combined = pd.concat([combined,LandSlope_dummies], axis=1)
 combined.drop('LandSlope', axis=1, inplace=True)
-print(LandSlope_dummies)
+
+BldgType_dummies = pd.get_dummies(combined['BldgType'], prefix='BldgType')
+combined = pd.concat([combined,BldgType_dummies], axis=1)
+combined.drop('BldgType', axis=1, inplace=True)
+
+
+HouseStyle_mapping = {
+       '1Story':1,
+       '1.5Fin':1,
+       '1.5Unf':1,
+       '2Story':2,
+       '2.5Fin':2,
+       '2.5Unf':2,
+       'SFoyer':3,
+       'SLvl':4,
+}
+combined['HouseStyle'] = combined.HouseStyle.map(HouseStyle_mapping)
+HouseStyle_dummies = pd.get_dummies(combined['HouseStyle'], prefix='HouseStyle')
+combined = pd.concat([combined,HouseStyle_dummies], axis=1)
+combined.drop('HouseStyle', axis=1, inplace=True)
+
+
+SaleType_mapping = {
+        'WD':'Warranty',
+        'CWD':'Warranty',
+       'VWD':'Warranty',
+        'New':'New',
+        'COD':'COD',
+        'Con':'Con',
+       'ConLw':'Con',
+       'ConLI':'Con',
+       'ConLD':'Con',
+        'Oth':'Oth'
+}
+combined['SaleType'] = combined.SaleType.map(SaleType_mapping)
+SaleType_dummies = pd.get_dummies(combined['SaleType'], prefix='SaleType')
+combined = pd.concat([combined,SaleType_dummies], axis=1)
+combined.drop('SaleType', axis=1, inplace=True)
+print(SaleType_dummies)
+
 
 #nulls = pd.DataFrame(combined.isnull().sum().sort_values(ascending=False)[:25])
 #nulls.columns = ['Null Count']
