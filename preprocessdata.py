@@ -14,30 +14,25 @@ train = hp_train.drop(['SalePrice'], axis=1)
 combined = train.append(hp_test)
 combined.reset_index(inplace=True)
 combined.drop(['index','Id'], inplace=True, axis=1)
-
-# 显示数据
-""""
-print (hp_train.columns)
-print (hp_train['SalePrice'].describe() )
-sns.distplot(hp_train['SalePrice'])
-plt.show(sns.distplot(hp_train['SalePrice']))
-# 对于houseprice和GrLivArea,发现两个异常点 
-var = 'GrLivArea'
-data = pd.concat([hp_train['SalePrice'], hp_train[var]], axis=1)
-plt.show(data.plot.scatter(x=var, y='SalePrice', ylim=(0,800000)))
-"""
-
 # 正态化GrLivArea
-#transformed histogram and normal probability plot
 combined['GrLivArea'] = np.log(combined['GrLivArea'])
 
-
+#nulls = pd.DataFrame(combined.isnull().sum().sort_values(ascending=False)[:35])
+#nulls.columns = ['Null Count']
+#nulls.index.name = 'Feature'
+#print(nulls)
 #print ("Unique values are:", combined.Neighborhood.unique())
 #print (train.Neighborhood.value_counts(), "\n")
-
-
 #categoricals = train.select_dtypes(exclude=[np.number])
 #print(categoricals.describe())
+
+# 删掉空缺值太多的18个特征
+na_count = combined.isnull().sum().sort_values(ascending=False)
+na_rate = na_count / len(combined)
+na_data = pd.concat([na_count,na_rate],axis=1,keys=['count','ratio'])
+print(na_data.head(34))
+combined = combined.drop(na_data[na_data['count']>4].index, axis=1)  # 删除上述前18个特征
+
 
 # 将是否有basement 分为两类
 def encode(x): return 0 if x == 0 else 1
@@ -73,10 +68,7 @@ combined['enc_condition'] = combined.SaleCondition.apply(encode)
 #用train data的中位数来填补缺失信息
 combined['GarageCars'].fillna(combined.iloc[:1458].GarageCars.median(),inplace=True)
 combined['GarageArea'].fillna(combined.iloc[:1458].GarageArea.median(),inplace=True)
-combined['LotFrontage'].fillna(combined.iloc[:1458].LotFrontage.median(),inplace=True)
-combined['MasVnrArea'].fillna(combined.iloc[:1458].MasVnrArea.median(),inplace=True)
 combined['TotalBsmtSF'].fillna(combined.iloc[:1458].TotalBsmtSF.median(),inplace=True)
-combined['GarageYrBlt'].fillna(combined.iloc[:1458].GarageYrBlt.median(),inplace=True)
 combined['BsmtFullBath'].fillna(combined.iloc[:1458].BsmtFullBath.median(),inplace=True)
 combined['BsmtUnfSF'].fillna(combined.iloc[:1458].BsmtUnfSF.median(),inplace=True)
 combined['BsmtFinSF2'].fillna(combined.iloc[:1458].BsmtFinSF2.median(),inplace=True)
@@ -85,31 +77,6 @@ combined['BsmtHalfBath'].fillna(combined.iloc[:1458].BsmtHalfBath.median(),inpla
 # one-hot encoding
 combined['enc_Street'] = pd.get_dummies(combined.Street, drop_first=True)
 
-#先用最多的属性来填补，再one-hot编码
-combined['GarageCond'].fillna('TA',inplace=True)
-GarageCond_dummies = pd.get_dummies(combined['GarageCond'], prefix='GarageCond')
-combined = pd.concat([combined,GarageCond_dummies], axis=1)
-combined.drop('GarageCond', axis=1, inplace=True)
-
-combined['GarageQual'].fillna('TA',inplace=True)
-GarageQual_dummies = pd.get_dummies(combined['GarageQual'], prefix='GarageQual')
-combined = pd.concat([combined,GarageQual_dummies], axis=1)
-combined.drop('GarageQual', axis=1, inplace=True)
-
-combined['GarageFinish'].fillna('Unf',inplace=True)
-GarageFinish_dummies = pd.get_dummies(combined['GarageFinish'], prefix='GarageFinish')
-combined = pd.concat([combined,GarageFinish_dummies], axis=1)
-combined.drop('GarageFinish', axis=1, inplace=True)
-
-combined['GarageType'].fillna('Attchd',inplace=True)
-GarageType_dummies = pd.get_dummies(combined['GarageType'], prefix='GarageType')
-combined = pd.concat([combined,GarageType_dummies], axis=1)
-combined.drop('GarageType', axis=1, inplace=True)
-
-combined['BsmtCond'].fillna('TA',inplace=True)
-BsmtCond_dummies = pd.get_dummies(combined['BsmtCond'], prefix='BsmtCond')
-combined = pd.concat([combined,BsmtCond_dummies], axis=1)
-combined.drop('BsmtCond', axis=1, inplace=True)
 
 combined['MSZoning'].fillna('RL',inplace=True)
 MSZoning_dummies = pd.get_dummies(combined['MSZoning'], prefix='MSZoning')
@@ -154,7 +121,7 @@ combined['HouseStyle'] = combined.HouseStyle.map(HouseStyle_mapping)
 HouseStyle_dummies = pd.get_dummies(combined['HouseStyle'], prefix='HouseStyle')
 combined = pd.concat([combined,HouseStyle_dummies], axis=1)
 combined.drop('HouseStyle', axis=1, inplace=True)
-
+print(HouseStyle_dummies)
 
 SaleType_mapping = {
         'WD':'Warranty',
@@ -166,22 +133,45 @@ SaleType_mapping = {
        'ConLw':'Con',
        'ConLI':'Con',
        'ConLD':'Con',
-        'Oth':'Oth'
+        'Oth':'Oth',
 }
 combined['SaleType'] = combined.SaleType.map(SaleType_mapping)
 SaleType_dummies = pd.get_dummies(combined['SaleType'], prefix='SaleType')
 combined = pd.concat([combined,SaleType_dummies], axis=1)
 combined.drop('SaleType', axis=1, inplace=True)
-print(SaleType_dummies)
 
 
-#nulls = pd.DataFrame(combined.isnull().sum().sort_values(ascending=False)[:25])
-#nulls.columns = ['Null Count']
-#nulls.index.name = 'Feature'
-#print(nulls)
-# 删掉空缺值太多的5个属性
-combined.drop(['PoolQC'], 1, inplace=True)
-combined.drop(['MiscFeature'], 1, inplace=True)
-combined.drop(['Alley'], 1, inplace=True)
-combined.drop(['Fence'], 1, inplace=True)
-combined.drop(['FireplaceQu'], 1, inplace=True)
+RoofStyle_dummies = pd.get_dummies(combined['RoofStyle'], prefix='RoofStyle')
+combined = pd.concat([combined,RoofStyle_dummies], axis=1)
+combined.drop('RoofStyle', axis=1, inplace=True)
+
+RoofMatl_dummies = pd.get_dummies(combined['RoofMatl'], prefix='RoofMatl')
+combined = pd.concat([combined,RoofMatl_dummies], axis=1)
+combined.drop('RoofMatl', axis=1, inplace=True)
+
+#print(hp_train.groupby(['MSSubClass'])[['SalePrice']].agg(['mean','median','count']))
+MSSubClass_mapping = {
+          180 : 1,
+          30 : 2,   45 : 2,
+          190 : 3, 50 : 3, 90 : 3,
+          85 : 4, 40 : 4, 160 : 4,
+          70 : 5, 20 : 5, 75 : 5, 80 : 5, 150 : 5,
+          120: 6, 60 : 6,
+
+}
+combined['MSSubClass'] = combined.MSSubClass.map(MSSubClass_mapping)
+MSSubClass_dummies = pd.get_dummies(combined['MSSubClass'], prefix='MSSubClass')
+combined = pd.concat([combined,MSSubClass_dummies], axis=1)
+combined.drop('MSSubClass', axis=1, inplace=True)
+
+Neighborhood_mapping = {
+'MeadowV' :1, 'IDOTRR ':1, 'BrDale' :1, 'OldTown' :1, 'Edwards'  :1, 'BrkSide'  :1,
+'Sawyer'  :2,'Blueste' :2,'SWISU'  :2,'NAmes'  :2,'NPkVill' :2,'Mitchel':2,
+'SawyerW':3,'Gilbert':3,'NWAmes':3,'Blmngtn':3,'CollgCr':3,
+'ClearCr':4,'Crawfor':4,'Veenker':4,'Somerst':4,'Timber':4,
+'StoneBr':5,      'NoRidge':5,      'NridgHt':5,
+}
+combined['Neighborhood'] = combined.Neighborhood.map(Neighborhood_mapping)
+Neighborhood_dummies = pd.get_dummies(combined['Neighborhood'], prefix='Neighborhood')
+combined = pd.concat([combined,Neighborhood_dummies], axis=1)
+combined.drop('Neighborhood', axis=1, inplace=True)

@@ -73,3 +73,19 @@ Got score 0.13133 (Top32%)
 (1) Review the preprocessing I have done before and go on doing data preprocessing.
 
 Got score 0.13028 (Top30%)
+
+2018.5.9
+
+(1) Delete more features and already reaches 18 attributes.
+
+(2) Try to install and use other models : gxboost (excellent regressor).
+
+(3) Use 'for' loop and set step as 0.02 to find the better weight for two methods.
+
+(4) Use as follwing code to find the relationship between the feature and target, and divide them into several categories.
+
+#print(hp_train.groupby(['MSSubClass'])[['SalePrice']].agg(['mean','median','count']))
+
+(5) Add new feature neighborhood which is very useful to improve the socre.
+
+Got score 0.12809 (Top27%)
