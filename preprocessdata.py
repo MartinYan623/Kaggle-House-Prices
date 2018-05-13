@@ -71,6 +71,7 @@ combined['GarageArea'].fillna(combined.iloc[:1458].GarageArea.median(),inplace=T
 combined['TotalBsmtSF'].fillna(combined.iloc[:1458].TotalBsmtSF.median(),inplace=True)
 combined['BsmtFullBath'].fillna(combined.iloc[:1458].BsmtFullBath.median(),inplace=True)
 combined['BsmtUnfSF'].fillna(combined.iloc[:1458].BsmtUnfSF.median(),inplace=True)
+combined['BsmtFinSF1'].fillna(combined.iloc[:1458].BsmtFinSF2.median(),inplace=True)
 combined['BsmtFinSF2'].fillna(combined.iloc[:1458].BsmtFinSF2.median(),inplace=True)
 combined['BsmtHalfBath'].fillna(combined.iloc[:1458].BsmtHalfBath.median(),inplace=True)
 
@@ -106,34 +107,32 @@ BldgType_dummies = pd.get_dummies(combined['BldgType'], prefix='BldgType')
 combined = pd.concat([combined,BldgType_dummies], axis=1)
 combined.drop('BldgType', axis=1, inplace=True)
 
-
 HouseStyle_mapping = {
-       '1Story':1,
+       '2.5Unf':1,
        '1.5Fin':1,
        '1.5Unf':1,
-       '2Story':2,
-       '2.5Fin':2,
-       '2.5Unf':2,
-       'SFoyer':3,
-       'SLvl':4,
+        'SFoyer': 1,
+        'SLvl': 2,
+       '1Story':2,
+       '2.5Fin':3,
+        '2Story':3,
 }
 combined['HouseStyle'] = combined.HouseStyle.map(HouseStyle_mapping)
 HouseStyle_dummies = pd.get_dummies(combined['HouseStyle'], prefix='HouseStyle')
 combined = pd.concat([combined,HouseStyle_dummies], axis=1)
 combined.drop('HouseStyle', axis=1, inplace=True)
-print(HouseStyle_dummies)
+
 
 SaleType_mapping = {
-        'WD':'Warranty',
-        'CWD':'Warranty',
-       'VWD':'Warranty',
-        'New':'New',
-        'COD':'COD',
-        'Con':'Con',
-       'ConLw':'Con',
-       'ConLI':'Con',
-       'ConLD':'Con',
-        'Oth':'Oth',
+        'WD':2,
+        'CWD':2,
+        'New':3,
+        'COD':1,
+        'Con':3,
+       'ConLw':1,
+       'ConLI':1,
+       'ConLD':1,
+        'Oth':1,
 }
 combined['SaleType'] = combined.SaleType.map(SaleType_mapping)
 SaleType_dummies = pd.get_dummies(combined['SaleType'], prefix='SaleType')
@@ -165,7 +164,7 @@ combined = pd.concat([combined,MSSubClass_dummies], axis=1)
 combined.drop('MSSubClass', axis=1, inplace=True)
 
 Neighborhood_mapping = {
-'MeadowV' :1, 'IDOTRR ':1, 'BrDale' :1, 'OldTown' :1, 'Edwards'  :1, 'BrkSide'  :1,
+'MeadowV' :1, 'IDOTRR':1, 'BrDale' :1, 'OldTown' :1, 'Edwards'  :1, 'BrkSide'  :1,
 'Sawyer'  :2,'Blueste' :2,'SWISU'  :2,'NAmes'  :2,'NPkVill' :2,'Mitchel':2,
 'SawyerW':3,'Gilbert':3,'NWAmes':3,'Blmngtn':3,'CollgCr':3,
 'ClearCr':4,'Crawfor':4,'Veenker':4,'Somerst':4,'Timber':4,
@@ -175,3 +174,71 @@ combined['Neighborhood'] = combined.Neighborhood.map(Neighborhood_mapping)
 Neighborhood_dummies = pd.get_dummies(combined['Neighborhood'], prefix='Neighborhood')
 combined = pd.concat([combined,Neighborhood_dummies], axis=1)
 combined.drop('Neighborhood', axis=1, inplace=True)
+
+
+
+Condition1_mapping = {
+'Artery' :'one', 'Feedr':'one', 'RRAe' :'one', 'OldTown' :'one', 'Norm'  :'one', 'RRAn'  :'one',
+'PosA'  :'two','PosN' :'two','RRNn'  :'two',
+}
+combined['Condition1'] = combined.Condition1.map(Condition1_mapping)
+combined['enc_Condition1'] = pd.get_dummies(combined.Condition1, drop_first=True)
+Condition2_mapping = {
+'Artery' :'one', 'Feedr':'one', 'RRAe' :'one', 'OldTown' :'one', 'Norm'  :'one', 'RRAn'  :'one',
+'PosA'  :'two','PosN' :'two','RRNn'  :'one',
+}
+combined['Condition2'] = combined.Condition2.map(Condition2_mapping)
+combined['enc_Condition2'] = pd.get_dummies(combined.Condition2, drop_first=True)
+
+ExterQual_dummies = pd.get_dummies(combined['ExterQual'], prefix='ExterQual')
+combined = pd.concat([combined,ExterQual_dummies], axis=1)
+combined.drop('ExterQual', axis=1, inplace=True)
+
+
+ExterCond_dummies = pd.get_dummies(combined['ExterCond'], prefix='ExterCond')
+combined = pd.concat([combined,ExterCond_dummies], axis=1)
+combined.drop('ExterCond', axis=1, inplace=True)
+
+HeatingQC_dummies = pd.get_dummies(combined['HeatingQC'], prefix='HeatingQC')
+combined = pd.concat([combined,HeatingQC_dummies], axis=1)
+combined.drop('HeatingQC', axis=1, inplace=True)
+
+KitchenQual_dummies = pd.get_dummies(combined['KitchenQual'], prefix='KitchenQual')
+combined = pd.concat([combined,KitchenQual_dummies], axis=1)
+combined.drop('KitchenQual', axis=1, inplace=True)
+
+
+Functional_dummies = pd.get_dummies(combined['Functional'], prefix='Functional')
+combined = pd.concat([combined,Functional_dummies], axis=1)
+combined.drop('Functional', axis=1, inplace=True)
+
+PavedDrive_dummies = pd.get_dummies(combined['PavedDrive'], prefix='PavedDrive')
+combined = pd.concat([combined,PavedDrive_dummies], axis=1)
+combined.drop('PavedDrive', axis=1, inplace=True)
+
+SaleCondition_dummies = pd.get_dummies(combined['SaleCondition'], prefix='SaleCondition')
+combined = pd.concat([combined,SaleCondition_dummies], axis=1)
+combined.drop('SaleCondition', axis=1, inplace=True)
+
+combined['enc_CentralAir'] = pd.get_dummies(combined.CentralAir, drop_first=True)
+
+
+Electrical_dummies = pd.get_dummies(combined['Electrical'], prefix='Electrical')
+combined = pd.concat([combined,Electrical_dummies], axis=1)
+combined.drop('Electrical', axis=1, inplace=True)
+
+Heating_dummies = pd.get_dummies(combined['Heating'], prefix='Heating')
+combined = pd.concat([combined,Heating_dummies], axis=1)
+combined.drop('Heating', axis=1, inplace=True)
+print(Heating_dummies)
+
+print(hp_train.groupby(['MiscFeature'])[['SalePrice']].agg(['mean','median','count']))
+
+
+
+
+
+
+
+
+

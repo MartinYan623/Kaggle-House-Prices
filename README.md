@@ -89,3 +89,9 @@ Got score 0.13028 (Top30%)
 (5) Add new feature neighborhood which is very useful to improve the socre.
 
 Got score 0.12809 (Top27%)
+
+2018.5.13
+
+(1) Complete all attributes in the preprocessing.
+
+Got score 0.12544 (Top24%)
